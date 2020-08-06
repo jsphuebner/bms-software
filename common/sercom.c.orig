@@ -1,0 +1,148 @@
+/** @file
+ * @brief Bit length coded communication driver
+ * @author Johannes Huebner <dev@johanneshuebner.com>
+ * @date 21.12.2015
+ *
+ */
+
+#include <stdint.h>
+#include "hwdefs.h"
+#include <util/delay.h>
+
+#define TIMER1_MODE_NONE 0
+#define TIMER1_MODE_SENDER 1
+#define TIMER1_MODE_RECEIVER 2
+
+#define RECV_STATE_WAIT_EDGE  0
+#define RECV_STATE_WAIT_START 1
+#define RECV_STATE_RECV       2
+#define RECV_STATE_DONE       3
+
+static uint8_t curBit;
+static uint8_t expBits;
+static uint8_t recvState;
+static volatile uint8_t *pcnt;
+static uint8_t *curBuf;
+
+static void TimerAsSender();
+static void TimerAsReceiver();
+static void SampleSymbol(uint16_t icr);
+
+void set_receive_mode(volatile uint8_t *bitcnt, void *buf, uint8_t numBits)
+{
+   pcnt = bitcnt;
+   curBuf = (uint8_t*)buf;
+   expBits = numBits;
+   curBit = 0;
+   recvState = RECV_STATE_WAIT_EDGE;
+   TimerAsReceiver();
+}
+
+void send_string(const void *string, uint16_t numBits)
+{
+   TimerAsSender();
+
+   uint8_t *curBuf = (uint8_t*)string;
+   uint16_t curBit = 0;
+
+   //Start pulse
+   TX_START();
+   _delay_us(2 * BIT_ONE_T);
+   TX_TOGGLE();
+
+   while (curBit < numBits)
+   {
+      uint8_t byte = curBuf[curBit >> 3];
+      uint8_t bit = (byte >> (curBit & 7)) & 1;
+
+      if (bit)
+         _delay_us(BIT_ONE_T - DUTYCYCLE_COR);
+      else
+         _delay_us(BIT_ZERO_T - DUTYCYCLE_COR);
+         
+      if (!TX_STATE)
+         _delay_us(2*DUTYCYCLE_COR);
+
+      TX_TOGGLE();
+      curBit++;
+   }
+
+   _delay_us(BIT_ONE_T);
+
+   TX_STOP();
+}
+
+RECV_TIMER_CAPT_ISR
+{
+   uint16_t icr = CAPT_VALUE;
+   if (icr > BIT_ZERO_MIN)
+   {
+      SET_COUNTER(0);
+      TOGGLE_EDGE_POLARITY();
+      SampleSymbol(icr);
+   }
+}
+
+RECV_TIMER_OVF_ISR
+{
+   SET_COUNTER(2 * BIT_ONE_MAX); //Make sure the value is invalid!
+   SET_START_EDGE_POLARITY();
+   recvState = RECV_STATE_WAIT_EDGE;
+   curBit = 0;
+}
+
+static void SampleSymbol(uint16_t icr)
+{
+   uint8_t *pbyte = curBuf + (curBit >> 3);
+
+   switch (recvState)
+   {
+      case RECV_STATE_WAIT_EDGE:
+         recvState = RECV_STATE_WAIT_START;
+         break;
+      case RECV_STATE_WAIT_START:
+         if (icr > BIT_ONE_MAX)
+            recvState = RECV_STATE_RECV;
+         curBit = 0;
+         break;
+      case RECV_STATE_RECV:
+         if (curBit < expBits)
+         {
+            if (icr < BIT_ZERO_MAX && icr > BIT_ZERO_MIN)
+            {
+               *pbyte &= ~(1 << (curBit & 7));
+               curBit++;
+            }
+            else if (icr > BIT_ONE_MIN && icr < BIT_ONE_MAX)
+            {
+               *pbyte |= (1 << (curBit & 7));
+               curBit++;
+            }
+            else
+            {
+               recvState = RECV_STATE_WAIT_EDGE;
+            }
+            *pcnt = curBit;
+         }
+         else
+         {
+            recvState = RECV_STATE_DONE;
+            *pcnt = expBits + 1;
+         }
+   }
+}
+
+static void TimerAsSender()
+{
+   //DISABLE_RECEIVER();
+   DISABLE_OVF_CAPT_IRQ();
+}
+
+static void TimerAsReceiver()
+{
+   SET_COUNTER(0);
+   TX_STOP();
+   CONFIG_TIMER_CAPT_MODE();
+   ENABLE_OVF_CAPT_IRQ();
+   SET_START_EDGE_POLARITY();
+}

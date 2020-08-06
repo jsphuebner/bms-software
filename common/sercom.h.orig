@@ -1,0 +1,9 @@
+#ifndef SERCOM_H_INCLUDED
+#define SERCOM_H_INCLUDED
+#include <stdint.h>
+
+void set_receive_mode(volatile uint8_t *flag, void *buf, uint8_t numBits);
+void send_string(const void *string, uint16_t numBits);
+int8_t set_dcycle(uint8_t dcycle);
+
+#endif // SERCOM_H_INCLUDED
