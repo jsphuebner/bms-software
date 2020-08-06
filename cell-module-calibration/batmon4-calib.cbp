@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="batmon4-calib" />
+		<Option pch_mode="2" />
+		<Option compiler="avrgcc" />
+		<Build>
+			<Target title="Atmega32">
+				<Option output="bin/Release/bms-calib.elf" prefix_auto="1" extension_auto="0" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="avrgcc" />
+				<Compiler>
+					<Add option="-mmcu=attiny84" />
+					<Add option="-Os" />
+					<Add option="-Wall" />
+					<Add option="-DF_CPU=2000000UL" />
+				</Compiler>
+				<Linker>
+					<Add option="-mmcu=attiny84" />
+					<Add option="-Wl,-Map=$(TARGET_OUTPUT_FILE).map,--cref,--gc-sections,--section-start=.bootloader=0xD00" />
+				</Linker>
+			</Target>
+			<Target title="Tiny44">
+				<Option output="bin/Tiny24/bms-calib.elf" prefix_auto="1" extension_auto="0" />
+				<Option object_output="obj/Tiny24/" />
+				<Option type="1" />
+				<Option compiler="avrgcc" />
+				<Compiler>
+					<Add option="-mtiny-stack" />
+					<Add option="-mmcu=attiny44" />
+					<Add option="-Os" />
+					<Add option="-Wall" />
+					<Add option="-std=c99" />
+					<Add option="-DF_CPU=4000000UL" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-mmcu=attiny44" />
+					<Add option="-Wl,-Map=$(TARGET_OUTPUT_FILE).map,--cref,--gc-sections,--section-start=.bootloader=0xE00" />
+				</Linker>
+				<ExtraCommands>
+					<Add after="avr-size --mcu=attiny44 -C $(TARGET_OUTPUT_FILE)" />
+				</ExtraCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wmain" />
+			<Add option="-Wall" />
+			<Add option="-std=c99" />
+			<Add option="-ffunction-sections" />
+			<Add option="-fdata-sections" />
+		</Compiler>
+		<ExtraCommands>
+			<Add after="avr-objcopy -O binary -R .bootloader -R .eeprom -R .eesafe $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_FILE).bin" />
+			<Add after="avr-objcopy -O ihex -R .eeprom -R .eesafe $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_FILE).hex" />
+			<Add after="avr-objcopy --no-change-warnings -j .eeprom --change-section-lma .eeprom=0 -O ihex $(TARGET_OUTPUT_FILE) $(TARGET_OUTPUT_FILE).eep.hex" />
+			<Add after="avr-objdump -h -S $(TARGET_OUTPUT_FILE) &gt; $(TARGET_OUTPUT_FILE).lss" />
+		</ExtraCommands>
+		<Unit filename="bms_shared.h">
+			<Option target="Tiny44" />
+		</Unit>
+		<Unit filename="eeprom.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="eeprom.h" />
+		<Unit filename="hwdefs.h" />
+		<Unit filename="main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
