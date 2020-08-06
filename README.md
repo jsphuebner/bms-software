@@ -26,7 +26,15 @@ The provided firmware works with a sequencer, as some pins are multiplexed. This
 
 Furthermore the expected values are hard-coded into the calibration firmware. You need to change the static const uint16_t expected[] to reflect your 4 cell voltages, static const uint8_t refTemp = 22; to reflect your room temperature and static const int32_t reference = 26373; to reflect your "100mV" reference.
 
-# Communication
+# Wiring
 With all calibration values safely stored in the EEPROM you are ready to flash the application firmware. Operation is confirmed by a running light that tells you the module is waiting for an address.
 
-It is now time to wire up the communication link. It is a 1-wire daisy chain archicture, that makes use of the fact, that adjacent modules are on a similar potential. The input of the first module is the master module. The input of the 2nd module connects to the output of the first module, the input of the n-th module connects to the output of the (n-1)-th module. The output of the n-th module loops back to the master module.
+It is now time to wire up the communication link. It is a 1-wire daisy chain archicture, that makes use of the fact, that adjacent modules are on a similar potential. The input of the first module is the master module. The input of the 2nd module connects to the output of the first module, the input of the n-th module connects to the output of the (n-1)-th module. The output of the n-th module loops back to the master module. See below:
+
+![alt text](wiring-diagram.jpg)
+![alt text](wiring-photo.jpg)
+
+The GND of the first module connects to Minus of your first cell. Cell1 connects to Plus of first cell, Cell 2 to Plus of 2nd cell and so on. GND of the second module connts to Minus of 5th cell which is also Plus of 4th cell. If the number of inputs don't mach up, say you have a 7 cell battery, connected unused inputs together to the last cell, e.g. connect Cell3 and Cell4 input to Plus of last cell. The master firmware will detect this and exclude this channel from the stats.
+
+# Operation
+The master firmware will assign addresses at startup and afterwards query firmware versions of all modules. Then operation starts. The LEDs of the cell modules should flash dimly and you should see all voltages and temperatures in the web interface.
