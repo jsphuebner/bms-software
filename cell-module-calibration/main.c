@@ -21,11 +21,10 @@
 int __attribute__((OS_main)) main(void);
 static void HWSetup(void);
 static const uint8_t differential_channels[] = { 0x0B, 0x0F, 0x11, 0x33 };
-static const uint32_t differential_offset = 124121; //148945;
-//static const uint16_t expected[] = { 3725, 7828, 11934, 16032 };//{ 3726, 7826, 11930, 16027 };
-static const uint16_t expected[] = { 3001, 6002, 9005, 12006 };
+static const uint32_t differential_offset = 148945; //124121;
+static const uint16_t expected[] = { 4000, 8000, 12000, 16000 }; //put here your actual voltages
 static const uint8_t refTemp = 22;
-//static const int32_t reference = 19740; //22024; //110.9mV //19740; //99.4mV
+//put here the converted value of your "100mV" reference by calculating reference = U * 655360 / 3.3
 static const int32_t reference = 26373; //132.8mV => 0.1328*20/3.3*512*64 = 0.1328 * 655360 / 3.3
 
 static void SendWord(uint16_t word)
