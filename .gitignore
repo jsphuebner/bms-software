@@ -1,0 +1,6 @@
+*.o
+*.elf*
+obj
+linker.map
+sinus.layout
+stm32?bms*
