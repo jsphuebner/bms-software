@@ -1,0 +1,32 @@
+#ifndef HWDEFS_H_INCLUDED
+#define HWDEFS_H_INCLUDED
+
+
+
+#define USART_BAUDRATE 115200
+
+#define RCC_CLOCK_SETUP rcc_clock_setup_in_hse_8mhz_out_72mhz
+
+#define GAUGE_TIMER TIM3
+
+#define BMS_USART          USART1
+#define BMS_USART_DR       USART1_DR
+#define BMS_USART_DMARX    DMA_CHANNEL5
+#define BMS_USART_DMATX    DMA_CHANNEL4
+
+#define TERM_USART         USART3
+#define TERM_USART_TXPIN   GPIO_USART3_TX
+#define TERM_USART_TXPORT  GPIOB
+#define TERM_USART_DMARX   DMA_CHANNEL3
+#define TERM_USART_DMATX   DMA_CHANNEL2
+#define TERM_USART_DR      USART3_DR
+#define TERM_BUFSIZE       128
+//Address of parameter block in flash
+#define FLASH_PAGE_SIZE 2048
+#define PARAM_BLKNUM    1
+#define PARAM_BLKSIZE FLASH_PAGE_SIZE
+#define CAN_BLKNUM     2
+#define CAN_BLKSIZE    FLASH_PAGE_SIZE
+#define BATSTT_ADDRESS 0x0801E800
+
+#endif // HWDEFS_H_INCLUDED

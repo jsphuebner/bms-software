@@ -1,0 +1,7 @@
+[submodule "master-firmware/libopeninv"]
+	path = master-firmware/libopeninv
+	url = git@github.com:jsphuebner/libopeninv.git
+	branch = can_module_extended
+[submodule "master-firmware/libopencm3"]
+	path = master-firmware/libopencm3
+	url = git@github.com:jsphuebner/libopencm3.git
